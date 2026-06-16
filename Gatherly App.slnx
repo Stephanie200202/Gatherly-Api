@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Gatherly App/Gatherly WebApi.csproj" />
+  <Project Path="Gatherly.Applicaton/Gatherly.Applicaton.csproj" />
+  <Project Path="Gatherly.Domain/Gatherly.Domain.csproj" />
+  <Project Path="Gatherly.Infrastructure/Gatherly.Infrastructure.csproj" />
+</Solution>
