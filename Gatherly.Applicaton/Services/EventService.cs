@@ -133,7 +133,7 @@ namespace Gatherly.Application.Services
                     Capacity = e.Capacity,
                     RegisteredCount = 0, // In production, calculated via aggregation
                     Status = e.Status,
-                    OrganizerName = "Tech Community Organizer"
+                    OrganizerName = e.Organizer != null ? e.Organizer.FullName : "Unknown Organizer"
                 });
 
                 return new PaginatedResponseDto<EventListItemDto>
@@ -177,7 +177,7 @@ namespace Gatherly.Application.Services
                     VipEnabled = e.VipEnabled,
                     RsvpDeadline = e.RsvpDeadline,
                     BannerUrl = e.BannerUrl,
-                    Organizer = new OrganizerDto { UserId = e.OrganizerId, Name = "Tech Community Organizer" },
+                    Organizer = new OrganizerDto { UserId = e.OrganizerId, Name=e.Organizer != null ? e.Organizer.FullName : "Unknown Organizer" },
                     CreatedAt = e.CreatedAt
                 };
             }

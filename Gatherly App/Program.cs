@@ -23,7 +23,6 @@ builder.Services.Configure<EmailSettings>(
 builder.Services.Configure<FileUploadSettings>(
     builder.Configuration.GetSection("FileUpload"));
 
-// Dependency Injection setup for the Database Context
 builder.Services.AddDbContext<ApplicationDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -48,21 +47,25 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserAbstraction, CurrentUserService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(a =>
+{
+    a.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    a.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    a.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
+            ValidateIssuer = true,
+            ValidateAudience = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]!)),
+            ValidateLifetime = true,
 
-           
-            RoleClaimType = "role"
+            //RoleClaimType = "role"
         };
 
         options.Events = new JwtBearerEvents
@@ -74,12 +77,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
     });
-
+builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    
+
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Paste your raw token values directly below.",

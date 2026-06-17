@@ -12,20 +12,24 @@ using Gatherly.Applicaton.DTOs;
 using Gatherly.Applicaton.IServices;
 using Gatherly.Domain.Entities;
 using Gatherly.Domain.IRepositories;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Gatherly.Application.Services
 {
     public class AuthService : IAuthServices
     {
+        private readonly IJwtProvider _jwtProvider;
         private readonly IEmailService _emailService;
         private readonly IUserRepository _userRepository;
-        private const string JwtSecret = "GatherlySuperSecretKey2026SecureString!";
+        private readonly string JwtSecret;
 
-        public AuthService(IUserRepository userRepository, IEmailService emailService)
+        public AuthService(IUserRepository userRepository, IEmailService emailService,IConfiguration configuration, IJwtProvider jwtProvider)
         {
+            JwtSecret = configuration["Jwt:SecretKey"] ?? throw new ArgumentNullException("jwt is null");
             _emailService = emailService;
             _userRepository = userRepository;
+            _jwtProvider = jwtProvider;
         }
 
         public async Task<RegisterResponseDto> RegisterAsync(ResgisterRequestDto request)
@@ -85,7 +89,7 @@ namespace Gatherly.Application.Services
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 throw new Exception("Invalid credentials");
 
-            var accessToken = GenerateJwtToken(user);
+            var accessToken = _jwtProvider.GenerateToken(user);
             var refreshToken = GenerateRefreshTokenString();
 
             user.RefreshToken = refreshToken;
@@ -95,7 +99,7 @@ namespace Gatherly.Application.Services
 
             return new LoginResponseDto
             {
-                AccessToken = accessToken,
+                AccessToken = accessToken.AccessToken,
                 RefreshToken = refreshToken,
                 ExpiresIn = 3600,
                 User = new UserLoginDto
@@ -114,11 +118,11 @@ namespace Gatherly.Application.Services
             if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
                 throw new Exception("Refresh token expired or invalid");
 
-            var newAccessToken = GenerateJwtToken(user);
+            var newAccessToken = _jwtProvider.GenerateToken(user);
 
             return new TokenResponseDto
             {
-                AccessToken = newAccessToken,
+                AccessToken = newAccessToken.AccessToken,
                 ExpiresIn = 3600
             };
         }
@@ -152,34 +156,34 @@ namespace Gatherly.Application.Services
 
         public async Task<bool> ForgotPasswordAsync(ForgetPasswordDto forgotPasswordDto)
         {
-            
+
             if (string.IsNullOrWhiteSpace(forgotPasswordDto.Email))
             {
                 throw new ArgumentException("Email address cannot be empty.");
             }
 
-            
+
             var user = await _userRepository.GetByIdentifierAsync(forgotPasswordDto.Email);
             if (user == null)
             {
-                
+
                 return false;
             }
 
-            
+
             var random = new Random();
             string otpCode = random.Next(100000, 999999).ToString();
 
-            
+
             user.ResetToken = otpCode;
             user.ResetTokenExpiryTime = DateTime.UtcNow.AddMinutes(5);
 
             await _userRepository.UpdateAsync(user);
 
-            
+
             string targetEmail = !string.IsNullOrWhiteSpace(user.Email) ? user.Email : forgotPasswordDto.Email;
 
-           
+
             string emailBody = $@"
         <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; max-width: 500px;'>
             <h2 style='color: #333;'>Gatherly Password Reset</h2>
@@ -192,13 +196,13 @@ namespace Gatherly.Application.Services
 
             try
             {
-                
+
                 await _emailService.SendEmailAsync(targetEmail, "Your Password Reset Verification Code", emailBody);
                 return true;
             }
             catch (Exception ex)
             {
-                
+
                 throw new Exception($"OTP generated, but email dispatch failed. Technical details: {ex.Message}", ex);
             }
         }

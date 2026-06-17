@@ -27,7 +27,7 @@ namespace Gatherly_App.Controllers
         {
             try
             {
-                var data = await _authService.RegisterAsync( request);
+                var data = await _authService.RegisterAsync(request);
                 return StatusCode(201, new ApiResponseDto<RegisterResponseDto>
                 {
                     Success = true,
@@ -232,4 +232,3 @@ namespace Gatherly_App.Controllers
         }
     }
 }
-    

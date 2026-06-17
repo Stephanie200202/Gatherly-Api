@@ -19,7 +19,7 @@ namespace Gatherly.Domain.Entities
         public string? RsvpDeadline { get; set; }
         public string Status { get; set; } = "Draft"; // Draft, Published, RegistrationClosed, Cancelled
         public Guid OrganizerId { get; set; }
-        public ApplicationUser Organizer {  get; set; }
+        public ApplicationUser Organizer { get; set; }
         public string? BannerUrl { get; set; }
         public DateTime CreatedAt { get; set; }
     }
