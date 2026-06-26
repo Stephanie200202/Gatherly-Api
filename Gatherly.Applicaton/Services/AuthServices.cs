@@ -245,12 +245,12 @@ namespace Gatherly.Application.Services
                 return false;
             }
 
-            // Apply new password changes (Remember to add password hashing here in production!)
-            user.PasswordHash = resetPasswordDto.NewPassword;
+            // 👇 FIXED: Securely hash the password using BCrypt so login works!
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(resetPasswordDto.NewPassword);
 
-            // Clear out old OTP data so it cannot be used again
-            user.ResetToken = resetPasswordDto.TokenOrOtp;
-            user.ResetTokenExpiryTime = DateTime.UtcNow.AddMinutes(5);
+            // 👇 FIXED: Clear out old OTP data entirely so it cannot be reused
+            user.ResetToken = null;
+            user.ResetTokenExpiryTime = null;
 
             await _userRepository.UpdateAsync(user);
             return true;

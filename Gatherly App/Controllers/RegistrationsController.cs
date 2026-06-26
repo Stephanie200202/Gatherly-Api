@@ -114,7 +114,7 @@ namespace Gatherly.Presentation.Controllers
         }
 
         [HttpGet("my-registrations")]
-        [Authorize(Roles = "Attendee")]
+       
         public async Task<IActionResult> GetMyRegistrations()
         {
             try

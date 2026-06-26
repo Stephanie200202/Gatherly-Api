@@ -33,8 +33,8 @@ namespace Gatherly.Domain.Entities
         public string RefreshToken { get; set; }
         public string Role { get; set; }
         public DateTime RefreshTokenExpiryTime { get; set; }
-        public string ResetToken { get; set; }
-        public DateTime ResetTokenExpiryTime { get; set; }
+        public string? ResetToken { get; set; }
+        public DateTime? ResetTokenExpiryTime { get; set; }
         public string ProfilePhoto { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
