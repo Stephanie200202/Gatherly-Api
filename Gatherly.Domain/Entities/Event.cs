@@ -12,6 +12,7 @@ namespace Gatherly.Domain.Entities
         public string StartTime { get; set; } = string.Empty;
         public string? EndTime { get; set; }
         public string? Description { get; set; }
+        public decimal Price { get; set; }
         public int Capacity { get; set; }
         public string Visibility { get; set; } = "Public";
         public bool AllowReEntry { get; set; }

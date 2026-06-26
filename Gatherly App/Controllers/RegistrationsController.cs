@@ -31,13 +31,43 @@ namespace Gatherly.Presentation.Controllers
             return Guid.Parse(userIdClaim);
         }
 
+        //[HttpPost("events/{eventId}/register")]
+        ////[Authorize(Roles = "Attendee")]
+        //public async Task<IActionResult> RegisterForEvent(Guid eventId, [FromBody] RegisterEventRequestDto requestDto)
+        //{
+        //    try
+        //    {
+        //        Guid userId = GetAuthenticatedUserId();
+        //        var resultDto = await _registrationService.RegisterForEventAsync(eventId, userId, requestDto);
+        //        var envelopeDto = ApiResponseEnvelopeDto<RegisterEventResponseDto>.CreateSuccess(resultDto, "Event registration processing successful.");
+        //        return StatusCode(StatusCodes.Status201Created, envelopeDto);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ApiResponseEnvelopeDto<object>.CreateError(ex.Message));
+        //    }
+        //}
+
+
+
         [HttpPost("events/{eventId}/register")]
-        [Authorize(Roles = "Attendee")]
         public async Task<IActionResult> RegisterForEvent(Guid eventId, [FromBody] RegisterEventRequestDto requestDto)
         {
             try
             {
-                Guid userId = GetAuthenticatedUserId();
+                Guid? userId = null;
+
+              
+                try
+                {
+                    userId = GetAuthenticatedUserId();
+                }
+                catch
+                {
+                   
+                    userId = null;
+                }
+
                 var resultDto = await _registrationService.RegisterForEventAsync(eventId, userId, requestDto);
                 var envelopeDto = ApiResponseEnvelopeDto<RegisterEventResponseDto>.CreateSuccess(resultDto, "Event registration processing successful.");
                 return StatusCode(StatusCodes.Status201Created, envelopeDto);
@@ -48,8 +78,11 @@ namespace Gatherly.Presentation.Controllers
             }
         }
 
+
+
+
         [HttpPost("registrations/{registrationId}/cancel")]
-        [Authorize(Roles = "Attendee")]
+        //[Authorize(Roles = "Attendee")]
         public async Task<IActionResult> CancelRegistration(Guid registrationId)
         {
             try

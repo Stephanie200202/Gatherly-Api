@@ -14,5 +14,7 @@ namespace Gatherly.Domain.Interfaces
         Task<bool> AddAsync(Registration registration);
         Task<bool> UpdateAsync(Registration registration);
         Task<int> GetCountByEventIdAsync(Guid eventId);
-    }
+        Task<Registration?> GetByUserOrEmailAndEventAsync(Guid? userId, string? email, Guid eventId);
+    }   
+      
 }

@@ -32,7 +32,7 @@ namespace Gatherly_App.Controllers
        
         [HttpPost]
         [Authorize(Roles = "Organizer, Admin")]
-        public async Task<IActionResult> CreateEvent([FromBody] CreateEventRequestDto requestDto)
+        public async Task<IActionResult> CreateEvent( [FromForm] CreateEventRequestDto requestDto)
         {
             try
             {

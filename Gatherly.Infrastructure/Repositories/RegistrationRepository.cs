@@ -68,4 +68,10 @@ public class RegistrationRepository : IRegistrationRepository
         return await _context.Registrations
             .CountAsync(r => r.EventId == eventId && r.Status != "Cancelled");
     }
+    public async Task<Registration?> GetByUserOrEmailAndEventAsync(Guid? userId, string? email, Guid eventId)
+    {
+        return await _context.Registrations
+            .FirstOrDefaultAsync(r => r.EventId == eventId &&
+                ((userId.HasValue && r.UserId == userId) || (!string.IsNullOrEmpty(email) && r.GuestEmail == email)));
+    }
 }

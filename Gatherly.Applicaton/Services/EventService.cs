@@ -25,9 +25,31 @@ namespace Gatherly.Application.Services
         {
             try
             {
+                string? uniqueBannerUrl = null;
+                Guid newEventId = Guid.NewGuid();
+
+                // 👇 1. PROCESS THE FILE UPLOAD SIMULTANEOUSLY
+                if (requestDto.BannerFile != null && requestDto.BannerFile.Length > 0)
+                {
+                    string fileExtension = Path.GetExtension(requestDto.BannerFile.FileName);
+
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await requestDto.BannerFile.CopyToAsync(memoryStream);
+                        byte[] fileBytes = memoryStream.ToArray();
+
+                        // Emulated secure file storage processing engine pipeline logic combined here:
+                        uniqueBannerUrl = $"https://cdn.gatherly.io/banners/{newEventId}_{Guid.NewGuid():N}{fileExtension}";
+
+                        // If you wire up AWS S3 or Azure Blob storage later, you pass 'fileBytes' to it here
+                    }
+                }
+
+                // 2. Map data fields directly into the Event entity model
                 var newEvent = new Event
                 {
-                    EventId = Guid.NewGuid(),
+                    EventId = newEventId,
+                    Price = requestDto.Price,
                     Title = requestDto.Title,
                     Category = requestDto.Category,
                     Venue = requestDto.Venue,
@@ -41,9 +63,10 @@ namespace Gatherly.Application.Services
                     VipEnabled = requestDto.VipEnabled,
                     RsvpDeadline = requestDto.RsvpDeadline,
 
-                  
-                    Status = "Draft",
+                    // 👇 3. SAVE THE GENERATED URL PATH STRING HERE
+                    BannerUrl = uniqueBannerUrl,
 
+                    Status = "Draft",
                     OrganizerId = organizerId,
                     CreatedAt = DateTime.UtcNow
                 };
@@ -64,8 +87,11 @@ namespace Gatherly.Application.Services
                     EventId = newEvent.EventId,
                     Title = newEvent.Title,
                     Status = newEvent.Status,
+                    Price = newEvent.Price,
 
-                    // Beautiful, readable links that are still completely unique:
+                    // 👇 4. RETURN THE URL PATH STRING BACK TO THE CLIENT
+                    BannerUrl = newEvent.BannerUrl,
+
                     EventLink = $"https://gatherly.io/events/{urlSlug}-{newEvent.EventId}",
                     RegistrationUrl = $"https://gatherly.io/register/{urlSlug}-{newEvent.EventId}",
                     CreatedAt = newEvent.CreatedAt
@@ -76,43 +102,6 @@ namespace Gatherly.Application.Services
                 throw new ApplicationException($"Structural creation failed: {ex.Message}", ex);
             }
         }
-
-
-
-        //public async Task<CreateEventResponseDto> CreateEventAsync(CreateEventRequestDto dto, Guid organizerId)
-        //{
-        //    var @event = new Event
-        //    {
-        //        EventId = Guid.NewGuid(),
-        //        Title = dto.Title,
-        //        Category = dto.Category,
-        //        Venue = dto.Venue,
-        //        Date = dto.Date,
-
-        //        StartTime = dto.StartTime,
-        //        EndTime = dto.EndTime,
-        //        Description = dto.Description,
-        //        Capacity = dto.Capacity,
-        //        Visibility = dto.Visibility,
-        //        AllowReEntry = dto.AllowReEntry,
-        //        VipEnabled = dto.VipEnabled,
-        //        RsvpDeadline = dto.RsvpDeadline,
-        //        OrganizerId = organizerId,
-        //        Status = "Draft"
-
-        //    };
-        //    await _eventRepository.AddAsync(@event);
-        //    string normalized = dto.Title.ToLower().Replace(" ", "-");
-        //    return new CreateEventResponseDto(@event.EventId, @event.Title, @event.Status, $"https://gatherly.io/events/{@event.EventId}", $"https://gatherly.io/register/{@event.EventId}", @event.CreatedAtUTC);
-        //}
-
-
-
-
-
-
-
-
 
 
         public async Task<PaginatedResponseDto<EventListItemDto>> GetPublicEventsAsync(int page, int pageSize, string? category, string? search, string? date)

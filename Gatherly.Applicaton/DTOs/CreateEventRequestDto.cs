@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace Gatherly.Application.DTOs.Events
 {
@@ -14,6 +15,9 @@ namespace Gatherly.Application.DTOs.Events
 
         [Required]
         public string Venue { get; set; } = string.Empty;
+
+        [Required]
+        public decimal Price{ get; set; }
 
         [Required]
         public string Date { get; set; } = string.Empty; // Format: YYYY-MM-DD
@@ -34,6 +38,7 @@ namespace Gatherly.Application.DTOs.Events
         public string Visibility { get; set; } = "Public"; // Public or Private
 
         public bool AllowReEntry { get; set; } = false;
+        public IFormFile? BannerFile { get; set; }
 
         public bool VipEnabled { get; set; } = false;
 

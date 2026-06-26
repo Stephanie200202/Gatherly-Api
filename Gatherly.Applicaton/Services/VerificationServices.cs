@@ -154,54 +154,54 @@ namespace Gatherly.Application.Services
 
 
 
-        //public object ScanPass(Guid eventId, string qrPayload, string gateId, string deviceId)
-        //{
-        //    // 1. Parse and Fetch Pass
-        //    var isGuid = Guid.TryParse(qrPayload, out var parsedPassId);
-        //    var pass = isGuid ? _passRepository.GetById(parsedPassId) : null;
+//public object ScanPass(Guid eventId, string qrPayload, string gateId, string deviceId)
+//{
+//    // 1. Parse and Fetch Pass
+//    var isGuid = Guid.TryParse(qrPayload, out var parsedPassId);
+//    var pass = isGuid ? _passRepository.GetById(parsedPassId) : null;
 
-        //    // Base/Default values if pass isn't found
-        //    var result = ScanResult.InvalidPass;
-        //    var message = "QR payload is invalid or tampered.";
-        //    var attendeeName = "Unknown";
-        //    var ticketType = "General";
-        //    var passId = Guid.Empty;
+//    // Base/Default values if pass isn't found
+//    var result = ScanResult.InvalidPass;
+//    var message = "QR payload is invalid or tampered.";
+//    var attendeeName = "Unknown";
+//    var ticketType = "General";
+//    var passId = Guid.Empty;
 
-        //    // 2. Validate Pass Statuses (Guard Clauses)
-        //    if (pass != null)
-        //    {
-        //        passId = pass.PassId;
-        //        attendeeName = pass.AttendeeName;
-        //        ticketType = pass.TicketType;
+//    // 2. Validate Pass Statuses (Guard Clauses)
+//    if (pass != null)
+//    {
+//        passId = pass.PassId;
+//        attendeeName = pass.AttendeeName;
+//        ticketType = pass.TicketType;
 
-        //        if (pass.EventId != eventId)
-        //        {
-        //            result = ScanResult.NotAllowed;
-        //            message = "Pass belongs to a different event.";
-        //        }
-        //        else if (pass.Status == PassStatus.Invalidated.ToString() || pass.Status == PassStatus.Flagged.ToString())
-        //        {
-        //            result = ScanResult.Flagged;
-        //            message = "Pass is flagged — alert security team.";
-        //        }
-        //        else if (_verificationRepository.GetAttendeeStatus(pass.PassId) == "Inside")
-        //        {
-        //            result = ScanResult.AlreadyUsed;
-        //            message = "Pass already scanned — duplicate access denied.";
-        //        }
-        //        else
-        //        {
-        //            // Access Approved
-        //            result = ScanResult.Approved;
-        //            message = "Access granted. Welcome!";
+//        if (pass.EventId != eventId)
+//        {
+//            result = ScanResult.NotAllowed;
+//            message = "Pass belongs to a different event.";
+//        }
+//        else if (pass.Status == PassStatus.Invalidated.ToString() || pass.Status == PassStatus.Flagged.ToString())
+//        {
+//            result = ScanResult.Flagged;
+//            message = "Pass is flagged — alert security team.";
+//        }
+//        else if (_verificationRepository.GetAttendeeStatus(pass.PassId) == "Inside")
+//        {
+//            result = ScanResult.AlreadyUsed;
+//            message = "Pass already scanned — duplicate access denied.";
+//        }
+//        else
+//        {
+//            // Access Approved
+//            result = ScanResult.Approved;
+//            message = "Access granted. Welcome!";
 
-        //            pass.Status = PassStatus.Used.ToString();
-        //            _passRepository.Update(pass);
-        //            _verificationRepository.RecordAttendeeStatus(pass.PassId, "Inside");
-        //        }
-        //    }
+//            pass.Status = PassStatus.Used.ToString();
+//            _passRepository.Update(pass);
+//            _verificationRepository.RecordAttendeeStatus(pass.PassId, "Inside");
+//        }
+//    }
 
-            // 3. Log the attempt
+// 3. Log the attempt
 //            var log = new VerificationLog
 //            {
 //                EventId = eventId,
@@ -324,11 +324,11 @@ namespace Gatherly.Application.Services
 //        {
 //            var logs = _verificationRepository.GetLogsByEventId(eventId).Where(l => l.Result == ScanResult.Approved.ToString);
 //            return new
-//            {
-//                eventId,
-//                currentlyInside = logs.Count(),
-//                attendees = logs.Select(l => new { l.PassId, l.AttendeeName, l.TicketType, checkedInAt = l.ScannedAt })
-//            };
-//        }
-//    }
+//          {
+//               eventId,
+//               currentlyInside = logs.Count(),
+//               attendees = logs.Select(l => new { l.PassId, l.AttendeeName, l.TicketType, checkedInAt = l.ScannedAt })
+//           };
+//       }
+//   }
 //}

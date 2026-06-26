@@ -20,43 +20,124 @@ namespace Gatherly.Application.Services
             _eventRepository = eventRepository;
         }
 
-        public async Task<RegisterEventResponseDto> RegisterForEventAsync(Guid eventId, Guid userId, RegisterEventRequestDto requestDto)
+        //public async Task<RegisterEventResponseDto> RegisterForEventAsync(Guid eventId, Guid userId, RegisterEventRequestDto requestDto)
+        //{
+        //    try
+        //    {
+        //        var targetEvent = await _eventRepository.GetByIdAsync(eventId);
+        //        if (targetEvent == null) throw new KeyNotFoundException("The requested event does not exist.");
+        //        if (targetEvent.Status != "Published") throw new InvalidOperationException("Registration is only open for published events.");
+
+        //        var existingReg = await _registrationRepository.GetByUserAndEventAsync(userId, eventId);
+        //        if (existingReg != null && existingReg.Status != "Cancelled")
+        //        {
+        //            throw new InvalidOperationException("You are already registered for this event.");
+        //        }
+
+        //        int currentAttendeeCount = await _registrationRepository.GetCountByEventIdAsync(eventId);
+        //        if (currentAttendeeCount >= targetEvent.Capacity)
+        //        {
+        //            throw new InvalidOperationException("This event has reached its maximum capacity capacity.");
+        //        }
+
+        //        var newRegistration = new Registration
+        //        {
+        //            RegistrationId = Guid.NewGuid(),
+        //            EventId = eventId,
+        //            UserId = userId,
+        //            TicketType = requestDto.TicketType,
+        //            Status = "Confirmed",
+        //            RegisteredAt = DateTime.UtcNow
+        //        };
+
+        //        await _registrationRepository.AddAsync(newRegistration);
+
+        //        return new RegisterEventResponseDto
+        //        {
+        //            RegistrationId = newRegistration.RegistrationId,
+        //            EventId = newRegistration.EventId,
+        //            UserId = newRegistration.UserId,
+        //            TicketType = newRegistration.TicketType,
+        //            Status = newRegistration.Status,
+        //            RegisteredAt = newRegistration.RegisteredAt,
+        //            AccessCode = $"GATH-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}"
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new ApplicationException($"Registration processing failed: {ex.Message}", ex);
+        //    }
+        //}
+
+
+
+
+
+        public async Task<RegisterEventResponseDto> RegisterForEventAsync(Guid eventId, Guid? userId, RegisterEventRequestDto requestDto)
         {
             try
             {
+                // 1. Fetch the target event to check availability and ticket price
                 var targetEvent = await _eventRepository.GetByIdAsync(eventId);
                 if (targetEvent == null) throw new KeyNotFoundException("The requested event does not exist.");
                 if (targetEvent.Status != "Published") throw new InvalidOperationException("Registration is only open for published events.");
-
-                var existingReg = await _registrationRepository.GetByUserAndEventAsync(userId, eventId);
-                if (existingReg != null && existingReg.Status != "Cancelled")
+                if (targetEvent.Status == "Closed") throw new InvalidOperationException("Registration for this event have closed");
+                // 2. Validate Guest Checkout Info
+                if (!userId.HasValue && string.IsNullOrWhiteSpace(requestDto.GuestEmail))
                 {
-                    throw new InvalidOperationException("You are already registered for this event.");
+                    throw new ArgumentException("Email is required for guest registration.");
                 }
 
+                // 3. Prevent Duplicate active registrations
+                var existingReg = await _registrationRepository.GetByUserOrEmailAndEventAsync(userId, requestDto.GuestEmail, eventId);
+                if (existingReg != null && existingReg.Status != "Cancelled")
+                {
+                    throw new InvalidOperationException("This user/email is already registered for this event.");
+                }
+
+                // 4. Capacity Limit Check
                 int currentAttendeeCount = await _registrationRepository.GetCountByEventIdAsync(eventId);
                 if (currentAttendeeCount >= targetEvent.Capacity)
                 {
-                    throw new InvalidOperationException("This event has reached its maximum capacity capacity.");
+                    throw new InvalidOperationException("This event has reached its maximum capacity.");
                 }
 
+                // 5. PROCESS THE PAYMENT (Simulated or via a service)
+                string paymentTransactionId = $"GATH-TX-{Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper()}";
+
+                // If your event has a price tag, we simulate a successful payment execution here
+                if (targetEvent.Price > 0 && string.IsNullOrWhiteSpace(requestDto.PaymentToken))
+                {
+                    throw new ArgumentException("Payment token is required for paid events.");
+                }
+
+                // 6. Map everything into the entity (including your new payment tracking fields!)
                 var newRegistration = new Registration
                 {
                     RegistrationId = Guid.NewGuid(),
                     EventId = eventId,
                     UserId = userId,
+                    GuestName = userId.HasValue ? null : requestDto.GuestName,
+                    GuestEmail = userId.HasValue ? null : requestDto.GuestEmail,
                     TicketType = requestDto.TicketType,
                     Status = "Confirmed",
-                    RegisteredAt = DateTime.UtcNow
+                    RegisteredAt = DateTime.UtcNow,
+
+                    // Here is where the magic happens:
+                    AmountPaid = targetEvent.Price,
+                    PaymentReference = targetEvent.Price > 0 ? paymentTransactionId : "FREE_EVENT"
                 };
 
+                // 7. Persist the single record to your database
                 await _registrationRepository.AddAsync(newRegistration);
 
+                // 8. Return response back to Swagger
                 return new RegisterEventResponseDto
                 {
                     RegistrationId = newRegistration.RegistrationId,
                     EventId = newRegistration.EventId,
                     UserId = newRegistration.UserId,
+                    GuestEmail = newRegistration.GuestEmail,
                     TicketType = newRegistration.TicketType,
                     Status = newRegistration.Status,
                     RegisteredAt = newRegistration.RegisteredAt,
@@ -65,9 +146,13 @@ namespace Gatherly.Application.Services
             }
             catch (Exception ex)
             {
-                throw new ApplicationException($"Registration processing failed: {ex.Message}", ex);
+                var innerError = ex.InnerException?.Message ?? ex.Message;
+                throw new ApplicationException($"Registration processing failed: {innerError}", ex);
             }
         }
+
+
+
 
         public async Task<CancelRegistrationResponseDto> CancelRegistrationAsync(Guid registrationId, Guid userId)
         {

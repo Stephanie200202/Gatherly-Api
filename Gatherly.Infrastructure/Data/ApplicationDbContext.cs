@@ -51,6 +51,7 @@ namespace Gatherly.Infrastructure.Data
                 .HasOne<ApplicationUser>()
                 .WithMany()
                 .HasForeignKey(r => r.UserId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Pass Relationships

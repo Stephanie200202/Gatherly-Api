@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Gatherly.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class GatherlyDb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -212,6 +212,7 @@ namespace Gatherly.Infrastructure.Migrations
                     StartTime = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EndTime = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Capacity = table.Column<int>(type: "int", nullable: false),
                     Visibility = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AllowReEntry = table.Column<bool>(type: "bit", nullable: false),
@@ -286,11 +287,15 @@ namespace Gatherly.Infrastructure.Migrations
                 {
                     RegistrationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    GuestName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    GuestEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TicketType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     RegisteredAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CheckedInAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    CheckedInAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    AmountPaid = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PaymentReference = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {

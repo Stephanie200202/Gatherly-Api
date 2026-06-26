@@ -6,7 +6,8 @@ namespace Gatherly.Application.DTOs.Registrations
     {
         public Guid RegistrationId { get; set; }
         public Guid EventId { get; set; }
-        public Guid UserId { get; set; }
+        public Guid? UserId { get; set; }
+        public string GuestEmail { get; set; } = string.Empty;
         public string TicketType { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public DateTime RegisteredAt { get; set; }
